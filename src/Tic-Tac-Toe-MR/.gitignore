@@ -1,15 +1,19 @@
 [Ll]ibrary/
 [Ll]ogs/
 [Tt]emp/
+
 Assets/AssetStoreTools*
-Assets/Plugins//**/*.dll
-Assets/Plugins//**/*.pdb
-Assets/Plugins//**/*.winmd
+Assets/TextMesh Pro/*
+Assets/TextMesh Pro.meta
+Assets/Plugins/**/*.dll
+Assets/Plugins/**/*.pdb
+Assets/Plugins/**/*.winmd
 /out/
 
-
+*.csproj
+/obj
 #VS Cache dir
-/.sv/
+/.vs/
 /.vscode/
 
 /*.tmp
