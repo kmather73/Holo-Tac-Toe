@@ -3,6 +3,7 @@ setlocal
 set SourceRoot=%~dp0
 
 call :CreateDirLink "%sourceRoot%\src\Tic-Tac-Toe-MR\Assets\Addons\MixedRealityToolkit-Unity" "..\..\..\..\External\MixedRealityToolkit-Unity"
+call :CreateDirLink "%sourceRoot%\src\Tic-Tac-Toe-MR\Assets\Addons\BlueToothNetworkingUWP" "..\..\..\BlueToothNetworkingUWP"
 GOTO End
 :CreateDirLink
 
