@@ -14,6 +14,7 @@
         private string m_player;
         private TextMeshPro m_cellValue;
 
+        public string CellValue => m_cellValue.text;
         public void SetPlayerInformation(string player)
         {
             OnPlayerMakesMove();
