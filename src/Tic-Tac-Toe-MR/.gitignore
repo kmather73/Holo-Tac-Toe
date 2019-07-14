@@ -1,0 +1,22 @@
+[Ll]ibrary/
+[Ll]ogs/
+[Tt]emp/
+Assets/AssetStoreTools*
+Assets/Plugins//**/*.dll
+Assets/Plugins//**/*.pdb
+Assets/Plugins//**/*.winmd
+/out/
+
+
+#VS Cache dir
+/.sv/
+/.vscode/
+
+/*.tmp
+
+
+
+#Unity3D Generated files
+*.pidb.meta
+*.pds.meta
+*.dll.mdb.meta
