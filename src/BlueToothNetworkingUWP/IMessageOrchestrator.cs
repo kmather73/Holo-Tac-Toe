@@ -9,6 +9,8 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
 // THE CODE OR THE USE OR OTHER DEALINGS IN THE CODE.
 // ******************************************************************
+using System.Threading.Tasks;
+
 namespace KMR.Communication.Devices
 {
     public interface IMessageOrchestrator
@@ -17,5 +19,6 @@ namespace KMR.Communication.Devices
         bool DeregisterMessageService(IMessageService messageService);
 
         bool TransmitMessage(IRemoteMessage message);
+        Task InitializeAsync();
     }
 }

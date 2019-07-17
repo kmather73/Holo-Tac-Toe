@@ -25,12 +25,20 @@ namespace KMR.Communication.Devices
     using Windows.Networking.Sockets;
     using Windows.Storage.Streams;
 
+
     public class BluetoothMessageOrchestrator : IMessageOrchestrator
     {
+        private enum Mode
+        {
+            Client,
+            Server,
+        }
         public static readonly Guid ServiceUuid = Guid.Parse("FCCBFF23-8335-4C70-B430-E32DE0E57177");
         public static readonly ushort SdpServiceNameAttributeId = 0x100;
         public static readonly string SdpServiceName = "KMR Bluetooth Rfcomm Service v1";
         private static readonly byte SdpServiceNameAttributeType = (4 << 3) | 5;
+
+        private Mode m_orchestratorMode;
 
         private RfcommDeviceService m_rfService;
         private RfcommServiceProvider m_rfcommService;
@@ -83,22 +91,24 @@ namespace KMR.Communication.Devices
             return m_socket != null;
         }
 
-        private async Task OnMessageReceived()
+        private async Task<bool> OnMessageReceived()
         {
             if (m_socket != null)
             {
                 try
                 {
-                    var readLength = await m_messageInStream.LoadAsync(sizeof(short));
-                    if (readLength < sizeof(short))
+                    var totalHeaderSize = (uint) sizeof(short) + sizeof(int);
+                    var readLength = await m_messageInStream.LoadAsync(totalHeaderSize);
+                    if (readLength < totalHeaderSize)
                     {
-                        // remoteDisconnection = true;
-                        // break;
+                        return false;
                     }
 
                     var header = m_messageInStream.ReadInt16();
+                    var messageSize = m_messageInStream.ReadUInt32();
 
-                    var messageSize = m_messageInStream.ReadInt32();
+                    readLength = await m_messageInStream.LoadAsync(messageSize);
+
                     var bytes = new byte[messageSize];
                     m_messageInStream.ReadBytes(bytes);
                     if (m_messageServices.TryGetValue(header, out var service))
@@ -115,6 +125,8 @@ namespace KMR.Communication.Devices
                     Debug.Write(ex);
                 }
             }
+
+            return m_socket != null;
         }
 
         private async Task InitializeRfcommServer()
@@ -184,9 +196,22 @@ namespace KMR.Communication.Devices
             m_messageOutstream = new DataWriter(m_socket.OutputStream);
             m_messageInStream = new DataReader(m_socket.InputStream);
 
-            while (true)
+            var readSuccess = false;
+            do
             {
-                await OnMessageReceived();
+                readSuccess = await OnMessageReceived();
+            } while (readSuccess);
+        }
+
+        public async Task InitializeAsync()
+        {
+            if(m_orchestratorMode == Mode.Client)
+            {
+                await InitializeRfcommClient(null);
+            }
+            else if(m_orchestratorMode == Mode.Server)
+            {
+                await InitializeRfcommServer();
             }
         }
     }

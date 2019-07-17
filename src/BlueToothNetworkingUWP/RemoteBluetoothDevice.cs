@@ -90,7 +90,7 @@ namespace KMR.Communication.Devices
 
             if (rfcommServices.Services.Count == 0)
             {
-                // "Could not discover the service on the remote device",
+                // Could not discover the service on the remote device
                 return false;
             }
 
