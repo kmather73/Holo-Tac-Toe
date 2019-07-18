@@ -22,8 +22,8 @@ namespace TicTacToeMR
 
     public class GameBoardCell : MonoBehaviour, IMixedRealityTouchHandler
     {
-        private string m_player;
-        private TextMeshPro m_cellValue;
+        private string m_player = null;
+        private TextMeshPro m_cellValue = null;
 
         public string CellValue => m_cellValue.text;
         public void SetPlayerInformation(string player)

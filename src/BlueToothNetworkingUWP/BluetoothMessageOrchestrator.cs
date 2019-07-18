@@ -24,22 +24,25 @@ namespace KMR.Communication.Devices
     using Windows.Devices.Enumeration;
     using Windows.Networking.Sockets;
     using Windows.Storage.Streams;
-
+#endif 
 
     public class BluetoothMessageOrchestrator : IMessageOrchestrator
     {
-        private enum Mode
+        public enum Mode
         {
             Client,
             Server,
         }
+
+#pragma warning disable CS0414
+        private static readonly byte SdpServiceNameAttributeType = (4 << 3) | 5;
+#pragma warning restore CS0414
         public static readonly Guid ServiceUuid = Guid.Parse("FCCBFF23-8335-4C70-B430-E32DE0E57177");
         public static readonly ushort SdpServiceNameAttributeId = 0x100;
         public static readonly string SdpServiceName = "KMR Bluetooth Rfcomm Service v1";
-        private static readonly byte SdpServiceNameAttributeType = (4 << 3) | 5;
 
         private Mode m_orchestratorMode;
-
+#if WINDOWS_UWP
         private RfcommDeviceService m_rfService;
         private RfcommServiceProvider m_rfcommService;
         private StreamSocketListener m_socketListener;
@@ -47,11 +50,12 @@ namespace KMR.Communication.Devices
         private StreamSocket m_socket;
         private DataWriter m_messageOutstream;
         private DataReader m_messageInStream;
+#endif
+        private Dictionary<short, IMessageService> m_messageServices = new Dictionary<short, IMessageService>();
 
-        private Dictionary<short, IMessageService> m_messageServices;
-
-        public BluetoothMessageOrchestrator()
+        public BluetoothMessageOrchestrator(Mode mode)
         {
+            m_orchestratorMode = mode;
         }
 
         public bool RegisterMessageService(IMessageService messageService)
@@ -80,6 +84,7 @@ namespace KMR.Communication.Devices
 
         public bool TransmitMessage(IRemoteMessage message)
         {
+#if WINDOWS_UWP
             if (m_socket != null)
             {
                 m_messageOutstream.WriteUInt16((ushort)message.MessageHeader);
@@ -89,8 +94,33 @@ namespace KMR.Communication.Devices
             }
 
             return m_socket != null;
+#else
+            return false;
+#endif
         }
 
+        public async Task InitializeAsync()
+        {
+            if (m_orchestratorMode == Mode.Server)
+            {
+#if WINDOWS_UWP
+                await InitializeRfcommServer();
+#else
+                await Task.CompletedTask;
+#endif
+            }
+        }
+
+        public Task<bool> ConnectToServerAsync(IRemoteDevice remoteServer)
+        {
+#if WINDOWS_UWP
+            return InitializeRfcommClient(remoteServer);
+#else
+            return Task.FromResult(false);
+#endif
+        }
+
+#if WINDOWS_UWP
         private async Task<bool> OnMessageReceived()
         {
             if (m_socket != null)
@@ -170,13 +200,13 @@ namespace KMR.Communication.Devices
             }
         }
 
-        private async Task InitializeRfcommClient(IRemoteDevice remoteServer)
+        private async Task<bool> InitializeRfcommClient(IRemoteDevice remoteServer)
         {
             var accessStatus = DeviceAccessInformation.CreateFromId(remoteServer.DeviceId).CurrentStatus;
             if (accessStatus == DeviceAccessStatus.DeniedByUser)
             {
                 Debug.Write("This app does not have access to connect to the remote device (please grant access in Settings > Privacy > Other Devices");
-                return;
+                return false;
             }
 
             var success = await remoteServer.TryAndConnectToDevice();
@@ -186,6 +216,7 @@ namespace KMR.Communication.Devices
 
             m_messageOutstream = new DataWriter(m_socket.OutputStream);
             m_messageInStream = new DataReader(m_socket.InputStream);
+            return success;
         }
 
         private async void OnConnectionReceivedAsync(StreamSocketListener sender, StreamSocketListenerConnectionReceivedEventArgs args)
@@ -202,18 +233,6 @@ namespace KMR.Communication.Devices
                 readSuccess = await OnMessageReceived();
             } while (readSuccess);
         }
-
-        public async Task InitializeAsync()
-        {
-            if(m_orchestratorMode == Mode.Client)
-            {
-                await InitializeRfcommClient(null);
-            }
-            else if(m_orchestratorMode == Mode.Server)
-            {
-                await InitializeRfcommServer();
-            }
-        }
-    }
 #endif
+    }
 }

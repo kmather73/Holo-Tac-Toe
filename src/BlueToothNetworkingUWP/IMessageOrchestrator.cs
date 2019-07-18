@@ -20,5 +20,6 @@ namespace KMR.Communication.Devices
 
         bool TransmitMessage(IRemoteMessage message);
         Task InitializeAsync();
+        Task<bool> ConnectToServerAsync(IRemoteDevice remoteServer);
     }
 }

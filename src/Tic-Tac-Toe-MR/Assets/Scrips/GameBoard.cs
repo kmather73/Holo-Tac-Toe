@@ -21,7 +21,7 @@ namespace TicTacToeMR
     public class GameBoard : MonoBehaviour
     {
         [SerializeField]
-        private GameObject GameCellPrefab;
+        private GameObject GameCellPrefab = null;
         private List<List<GameBoardCell>> m_gameBoard;
         private const int GridSize = 3;
         private const float GridLength = 0.5f;

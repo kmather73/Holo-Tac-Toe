@@ -20,27 +20,15 @@ namespace TicTacToeMR
     using System.Threading.Tasks;
     using UnityEngine;
 
-    public class GameSelectManager : MonoBehaviour, IMixedRealityTouchHandler
+    public class GameSelectManager : MonoBehaviour
     {
         private IMessageOrchestrator m_messageOrchestrator;
         private BluetoothDeviceLocator m_deviceLocator;
-
-        public void OnTouchCompleted(HandTrackingInputEventData eventData)
-        {
-        }
-
-        public void OnTouchStarted(HandTrackingInputEventData eventData)
-        {
-        }
-
-        public void OnTouchUpdated(HandTrackingInputEventData eventData)
-        {
-        }
-
+        private bool m_hasOtherPlayer;
 
         public async Task CreateSession()
         {
-            resetMessgeOrchetrator();
+            m_messageOrchestrator = new BluetoothMessageOrchestrator(BluetoothMessageOrchestrator.Mode.Server);
             await m_messageOrchestrator.InitializeAsync();
         }
 
@@ -51,19 +39,38 @@ namespace TicTacToeMR
             m_deviceLocator.InitialDeviceEnumerationCompleted += OnFoundAllNearbyDeviceForNow;
         }
 
-        private void OnFoundAllNearbyDeviceForNow(object sender, EventArgs e)
+        private void OnEnable()
         {
-            var firstDevice = m_deviceLocator.RemoteDevices.FirstOrDefault();
-            if (firstDevice != null)
+            m_hasOtherPlayer = false;
+        }
+
+        private void OnDisable()
+        {
+            m_messageOrchestrator = null;
+            m_hasOtherPlayer = false;
+        }
+
+        private void Update()
+        {
+            if (m_hasOtherPlayer)
             {
 
             }
         }
 
-        private void resetMessgeOrchetrator()
+        private async void OnFoundAllNearbyDeviceForNow(object sender, EventArgs e)
         {
-            m_messageOrchestrator = null;
-            m_messageOrchestrator = new BluetoothMessageOrchestrator();
+            m_messageOrchestrator = new BluetoothMessageOrchestrator(BluetoothMessageOrchestrator.Mode.Client);
+            await m_messageOrchestrator.InitializeAsync();
+
+            foreach (var device in m_deviceLocator.RemoteDevices)
+            {
+                var couldConnect = await m_messageOrchestrator.ConnectToServerAsync(device);
+                if (couldConnect)
+                {
+                    break;
+                }
+            }
         }
     }
 }

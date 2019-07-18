@@ -62,7 +62,7 @@ namespace KMR.Communication.Devices
 #endif
             }
         }
-                public async Task<bool> TryAndConnectToDevice()
+        public async Task<bool> TryAndConnectToDevice()
         {
 #if WINDOWS_UWP
             try

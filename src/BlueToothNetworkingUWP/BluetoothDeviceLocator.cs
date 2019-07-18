@@ -29,11 +29,14 @@ namespace KMR.Communication.Devices
         private DeviceWatcher m_deviceWatcher;
 #endif
 
+
         private object deviceListLock = new object();
+#pragma warning disable CS0067
         public event EventHandler<IRemoteDevice> DeviceFound;
         public event EventHandler<IRemoteDevice> DeviceLost;
         public event EventHandler<IRemoteDevice> DeviceUpdated;
         public event EventHandler InitialDeviceEnumerationCompleted;
+#pragma warning restore CS0067
         public event PropertyChangedEventHandler PropertyChanged;
 
         public IList<IRemoteDevice> RemoteDevices { get; }
